@@ -1,0 +1,659 @@
+#:kivy 2.0
+#:import dp  kivy.metrics.dp
+#:import sp  kivy.metrics.sp
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  COLOUR PALETTE  — referenced throughout via #:set constants
+# ═══════════════════════════════════════════════════════════════════════════════
+#:set C_BG      [0.039, 0.039, 0.102, 1]
+#:set C_SURFACE [0.067, 0.067, 0.157, 1]
+#:set C_CARD    [0.102, 0.102, 0.208, 1]
+#:set C_CARD2   [0.118, 0.118, 0.235, 1]
+#:set C_BORDER  [0.165, 0.165, 0.314, 1]
+#:set C_TEAL    [0.024, 0.839, 0.627, 1]
+#:set C_GOLD    [0.957, 0.769, 0.188, 1]
+#:set C_PINK    [0.969, 0.145, 0.522, 1]
+#:set C_PURPLE  [0.482, 0.184, 0.745, 1]
+#:set C_TEXT1   [0.941, 0.941, 1.000, 1]
+#:set C_TEXT2   [0.565, 0.565, 0.690, 1]
+#:set C_TEXT3   [0.314, 0.314, 0.627, 1]
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  REUSABLE WIDGET RULES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ── FrequencyCard (MDCard with custom accent, content built in Python) ─────────
+<FrequencyCard>:
+    elevation:       0
+    radius:          [dp(16)]
+    ripple_behavior: False
+    size_hint_y:     None
+    height:          dp(130)
+    orientation:     'vertical'
+    padding:         [dp(14), dp(12), dp(14), dp(10)]
+    spacing:         dp(6)
+
+# ── NoteCard (compact 3-col grid card, content built in Python) ───────────────
+<NoteCard>:
+    elevation:       0
+    radius:          [dp(12)]
+    ripple_behavior: False
+    size_hint_y:     None
+    height:          dp(100)
+    orientation:     'vertical'
+    padding:         [dp(8), dp(8)]
+    spacing:         dp(3)
+
+# ── Styled label helpers ──────────────────────────────────────────────────────
+<SHeadingLabel@MDLabel>:
+    font_style:       'H5'
+    theme_text_color: 'Custom'
+    text_color:       C_TEXT1
+    halign:           'center'
+    valign:           'middle'
+    size_hint_y:      None
+    height:           dp(44)
+    text_size:        self.size
+
+<SSubLabel@MDLabel>:
+    font_style:       'Caption'
+    theme_text_color: 'Custom'
+    text_color:       C_TEXT2
+    halign:           'center'
+    valign:           'middle'
+    size_hint_y:      None
+    height:           dp(22)
+    text_size:        self.size
+
+<SSectionLabel@MDLabel>:
+    font_style:       'Overline'
+    theme_text_color: 'Custom'
+    text_color:       C_TEXT3
+    halign:           'left'
+    valign:           'middle'
+    size_hint_y:      None
+    height:           dp(20)
+    text_size:        self.size
+
+<SStatusLabel@MDLabel>:
+    font_style:       'Caption'
+    theme_text_color: 'Custom'
+    text_color:       C_TEXT2
+    halign:           'center'
+    valign:           'middle'
+    size_hint_y:      None
+    height:           dp(26)
+    text_size:        self.size
+
+# ── Teal primary action button ────────────────────────────────────────────────
+<STealButton@MDRaisedButton>:
+    elevation:    0
+    font_size:    sp(13)
+    md_bg_color:  C_TEAL
+    text_color:   C_BG
+    _radius:      dp(10)
+
+# ── Ghost / secondary button ──────────────────────────────────────────────────
+<SGhostButton@MDFlatButton>:
+    font_size:          sp(13)
+    theme_text_color:   'Custom'
+    text_color:         C_TEXT2
+    line_color:         C_BORDER
+    canvas.before:
+        Color:
+            rgba: C_BORDER
+        RoundedRectangle:
+            pos:    self.pos
+            size:   self.size
+            radius: [dp(10)]
+
+# ── Filter toggle chip ─────────────────────────────────────────────────────────
+<FilterChip@ToggleButton>:
+    background_normal:   ''
+    background_down:     ''
+    background_color:    0, 0, 0, 0
+    color:               C_TEXT2 if self.state == 'normal' else [0.039, 0.039, 0.102, 1]
+    font_size:           sp(11)
+    bold:                self.state == 'down'
+    size_hint_y:         None
+    height:              dp(30)
+    canvas.before:
+        Color:
+            rgba: C_TEAL if self.state == 'down' else C_BORDER
+        RoundedRectangle:
+            pos:    self.pos
+            size:   self.size
+            radius: [dp(15)]
+
+# ── Tuning toggle (gold when active) ──────────────────────────────────────────
+<TuningToggle@ToggleButton>:
+    background_normal:   ''
+    background_down:     ''
+    background_color:    0, 0, 0, 0
+    color:               [0.039, 0.039, 0.102, 1] if self.state == 'down' else C_TEXT2
+    font_size:           sp(12)
+    bold:                self.state == 'down'
+    size_hint_y:         None
+    height:              dp(38)
+    canvas.before:
+        Color:
+            rgba: C_GOLD if self.state == 'down' else C_BORDER
+        RoundedRectangle:
+            pos:    self.pos
+            size:   self.size
+            radius: [dp(10)]
+
+# ── Surface card container ─────────────────────────────────────────────────────
+<SurfaceCard@MDCard>:
+    elevation:       0
+    radius:          [dp(14)]
+    ripple_behavior: False
+    md_bg_color:     C_CARD
+    padding:         [dp(14), dp(12)]
+    spacing:         dp(10)
+    orientation:     'vertical'
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  ROOT — MDBottomNavigation
+# ═══════════════════════════════════════════════════════════════════════════════
+MDBottomNavigation:
+    id:                      root_nav
+    panel_color:             C_SURFACE
+    text_color_active:       C_TEAL
+    text_color_normal:       C_TEXT3
+    selected_color_background: 0.024, 0.839, 0.627, 0.15
+
+    # ── HOME ────────────────────────────────────────────────────────────────
+    MDBottomNavigationItem:
+        name: 'home'
+        text: 'Home'
+        icon: 'home'
+
+        MDBoxLayout:
+            orientation:  'vertical'
+            md_bg_color:  C_BG
+            padding:      [dp(20), dp(18), dp(20), dp(8)]
+            spacing:      dp(10)
+
+            MDLabel:
+                text:             'Healing Through Sound'
+                font_style:       'Body2'
+                theme_text_color: 'Custom'
+                text_color:       C_TEAL
+                halign:           'center'
+                size_hint_y:      None
+                height:           dp(26)
+                text_size:        self.size
+
+            MDLabel:
+                text:             'Sound Healer'
+                font_style:       'H3'
+                theme_text_color: 'Custom'
+                text_color:       C_TEXT1
+                halign:           'center'
+                size_hint_y:      None
+                height:           dp(64)
+                text_size:        self.size
+
+            MDLabel:
+                text:             'Pure  ·  Accurate  ·  Therapeutic'
+                font_style:       'Body2'
+                text_color:       C_TEXT2
+                halign:           'center'
+                size_hint_y:      None
+                height:           dp(26)
+                text_size:        self.size
+
+            WaveformWidget:
+                id:          home_wave
+                size_hint_y: None
+                height:      dp(68)
+
+            SSectionLabel:
+                text: 'EXPLORE'
+
+            GridLayout:
+                id:          home_grid
+                cols:        2
+                spacing:     dp(10)
+                size_hint_y: None
+                height:      dp(200)
+
+            SStatusLabel:
+                id: home_status
+                text: 'Nothing playing'
+
+            Widget:
+
+    # ── CUSTOM GENERATOR ────────────────────────────────────────────────────
+    MDBottomNavigationItem:
+        name: 'custom'
+        text: 'Generate'
+        icon: 'tune'
+
+        MDBoxLayout:
+            orientation: 'vertical'
+            md_bg_color: C_BG
+
+            ScrollView:
+                do_scroll_x: False
+
+                MDBoxLayout:
+                    orientation:  'vertical'
+                    md_bg_color:  C_BG
+                    padding:      [dp(18), dp(14), dp(18), dp(8)]
+                    spacing:      dp(10)
+                    adaptive_height: True
+
+                    SHeadingLabel:
+                        text: 'Frequency Generator'
+
+                    SSubLabel:
+                        text: 'Enter any frequency for precise playback'
+
+                    MDLabel:
+                        id:               freq_display
+                        text:             '432.00 Hz'
+                        font_style:       'H3'
+                        theme_text_color: 'Custom'
+                        text_color:       C_TEAL
+                        halign:           'center'
+                        size_hint_y:      None
+                        height:           dp(60)
+                        text_size:        self.size
+
+                    WaveformWidget:
+                        id:          custom_wave
+                        size_hint_y: None
+                        height:      dp(60)
+
+                    # ── Input card ─────────────────────────────────────────
+                    SurfaceCard:
+                        size_hint_y: None
+                        height:      dp(158)
+
+                        SSectionLabel:
+                            text: 'ENTER FREQUENCY (Hz)'
+
+                        MDTextField:
+                            id:                    freq_input
+                            text:                  '432'
+                            hint_text:             'e.g. 528'
+                            input_filter:          'float'
+                            mode:                  'fill'
+                            fill_color_normal:     C_BORDER
+                            fill_color_focus:      C_BORDER
+                            text_color_normal:     C_TEXT1
+                            text_color_focus:      C_TEXT1
+                            hint_text_color_normal: C_TEXT2
+                            line_color_normal:     0, 0, 0, 0
+                            line_color_focus:      C_TEAL
+                            font_size:             sp(20)
+                            size_hint_y:           None
+                            height:                dp(46)
+
+                        MDBoxLayout:
+                            orientation:  'horizontal'
+                            size_hint_y:  None
+                            height:       dp(34)
+                            spacing:      dp(6)
+
+                            MDLabel:
+                                text:             '20'
+                                font_style:       'Caption'
+                                theme_text_color: 'Custom'
+                                text_color:       C_TEXT3
+                                size_hint_x:      None
+                                width:            dp(26)
+                                halign:           'center'
+                                text_size:        self.size
+
+                            MDSlider:
+                                id:                   freq_slider
+                                min:                  20
+                                max:                  2000
+                                value:                432
+                                hint:                 False
+                                color:                C_TEAL
+                                thumb_color_active:   C_TEAL
+
+                            MDLabel:
+                                text:             '2k'
+                                font_style:       'Caption'
+                                theme_text_color: 'Custom'
+                                text_color:       C_TEXT3
+                                size_hint_x:      None
+                                width:            dp(26)
+                                halign:           'center'
+                                text_size:        self.size
+
+                    # ── Volume card ────────────────────────────────────────
+                    MDCard:
+                        elevation:       0
+                        radius:          [dp(12)]
+                        md_bg_color:     C_CARD2
+                        ripple_behavior: False
+                        size_hint_y:     None
+                        height:          dp(54)
+                        padding:         [dp(12), dp(8)]
+
+                        MDBoxLayout:
+                            orientation: 'horizontal'
+                            spacing:     dp(8)
+
+                            MDLabel:
+                                text:        '🔊'
+                                font_style:  'H6'
+                                size_hint_x: None
+                                width:       dp(34)
+                                halign:      'center'
+
+                            MDSlider:
+                                id:                  vol_slider
+                                min:                 0
+                                max:                 1
+                                value:               0.7
+                                hint:                False
+                                color:               C_TEAL
+                                thumb_color_active:  C_TEAL
+
+                            MDLabel:
+                                id:               vol_pct
+                                text:             '70%'
+                                font_style:       'Caption'
+                                theme_text_color: 'Custom'
+                                text_color:       C_TEXT2
+                                size_hint_x:      None
+                                width:            dp(40)
+                                halign:           'right'
+                                text_size:        self.size
+
+                    # ── Play / Stop ────────────────────────────────────────
+                    MDBoxLayout:
+                        orientation:  'horizontal'
+                        size_hint_y:  None
+                        height:       dp(50)
+                        spacing:      dp(12)
+
+                        STealButton:
+                            id:   play_btn
+                            text: 'PLAY'
+
+                        SGhostButton:
+                            id:   stop_btn
+                            text: 'STOP'
+
+                    SSectionLabel:
+                        text: 'QUICK PRESETS'
+
+                    GridLayout:
+                        id:          preset_grid
+                        cols:        3
+                        spacing:     dp(8)
+                        size_hint_y: None
+                        height:      dp(110)
+
+                    Widget:
+                        size_hint_y: None
+                        height:      dp(8)
+
+    # ── SOLFEGGIO ────────────────────────────────────────────────────────────
+    MDBottomNavigationItem:
+        name: 'solfeggio'
+        text: 'Solfeggio'
+        icon: 'star-four-points'
+
+        MDBoxLayout:
+            orientation: 'vertical'
+            md_bg_color: C_BG
+            padding:     [dp(14), dp(10), dp(14), dp(4)]
+            spacing:     dp(6)
+
+            SHeadingLabel:
+                text: 'Solfeggio Frequencies'
+
+            MDLabel:
+                text:             'Ancient tones for deep healing'
+                font_style:       'Caption'
+                theme_text_color: 'Custom'
+                text_color:       C_GOLD
+                halign:           'center'
+                size_hint_y:      None
+                height:           dp(20)
+                text_size:        self.size
+
+            WaveformWidget:
+                id:          solfeggio_wave
+                size_hint_y: None
+                height:      dp(46)
+
+            SStatusLabel:
+                id:   solfeggio_status
+                text: 'Tap a card to begin'
+
+            ScrollView:
+                do_scroll_x: False
+
+                MDBoxLayout:
+                    id:              solfeggio_cards
+                    orientation:     'vertical'
+                    md_bg_color:     C_BG
+                    size_hint_y:     None
+                    height:          self.minimum_height
+                    spacing:         dp(10)
+                    padding:         [0, dp(4), 0, dp(8)]
+
+    # ── CHAKRA ───────────────────────────────────────────────────────────────
+    MDBottomNavigationItem:
+        name: 'chakra'
+        text: 'Chakras'
+        icon: 'circle-multiple-outline'
+
+        MDBoxLayout:
+            orientation: 'vertical'
+            md_bg_color: C_BG
+            padding:     [dp(14), dp(10), dp(14), dp(4)]
+            spacing:     dp(6)
+
+            SHeadingLabel:
+                text: 'Chakra Frequencies'
+
+            MDLabel:
+                text:             'Harmonise your 7 energy centres'
+                font_style:       'Caption'
+                theme_text_color: 'Custom'
+                text_color:       C_PURPLE
+                halign:           'center'
+                size_hint_y:      None
+                height:           dp(20)
+                text_size:        self.size
+
+            MDBoxLayout:
+                id:          chakra_spine
+                orientation: 'horizontal'
+                md_bg_color: C_CARD
+                size_hint_y: None
+                height:      dp(52)
+                padding:     [dp(8), dp(6)]
+                spacing:     dp(4)
+                # dots added in Python
+
+            WaveformWidget:
+                id:          chakra_wave
+                size_hint_y: None
+                height:      dp(42)
+
+            SStatusLabel:
+                id:   chakra_status
+                text: 'Tap a chakra card to balance it'
+
+            ScrollView:
+                do_scroll_x: False
+
+                MDBoxLayout:
+                    id:          chakra_cards
+                    orientation: 'vertical'
+                    md_bg_color: C_BG
+                    size_hint_y: None
+                    height:      self.minimum_height
+                    spacing:     dp(10)
+                    padding:     [0, dp(4), 0, dp(8)]
+
+    # ── MUSICAL NOTES ─────────────────────────────────────────────────────────
+    MDBottomNavigationItem:
+        name: 'notes'
+        text: 'Notes'
+        icon: 'music'
+
+        MDBoxLayout:
+            orientation: 'vertical'
+            md_bg_color: C_BG
+            padding:     [dp(14), dp(10), dp(14), dp(4)]
+            spacing:     dp(6)
+
+            SHeadingLabel:
+                text: 'Musical Notes'
+
+            MDLabel:
+                text:             '12 notes  ·  Equal temperament  ·  Precise Hz'
+                font_style:       'Caption'
+                theme_text_color: 'Custom'
+                text_color:       C_PINK
+                halign:           'center'
+                size_hint_y:      None
+                height:           dp(20)
+                text_size:        self.size
+
+            # ── Tuning toggle row ──────────────────────────────────────────
+            MDBoxLayout:
+                orientation:  'horizontal'
+                size_hint_y:  None
+                height:       dp(42)
+                spacing:      dp(8)
+
+                MDLabel:
+                    text:             'Tuning:'
+                    font_style:       'Caption'
+                    theme_text_color: 'Custom'
+                    text_color:       C_TEXT2
+                    size_hint_x:      None
+                    width:            dp(54)
+                    halign:           'right'
+                    text_size:        self.size
+                    valign:           'middle'
+
+                TuningToggle:
+                    id:    btn_440
+                    text:  'A = 440 Hz'
+                    group: 'tuning'
+
+                TuningToggle:
+                    id:    btn_432
+                    text:  'A = 432 Hz  ✦'
+                    group: 'tuning'
+                    state: 'down'
+
+            # ── Note-type filter ───────────────────────────────────────────
+            MDBoxLayout:
+                orientation:  'horizontal'
+                size_hint_y:  None
+                height:       dp(32)
+                spacing:      dp(6)
+
+                MDLabel:
+                    text:             'NOTES:'
+                    font_style:       'Overline'
+                    theme_text_color: 'Custom'
+                    text_color:       C_TEXT3
+                    size_hint_x:      None
+                    width:            dp(50)
+                    halign:           'right'
+                    text_size:        self.size
+                    valign:           'middle'
+
+                FilterChip:
+                    id:    filter_all
+                    text:  'All'
+                    group: 'note_filter'
+                    state: 'down'
+
+                FilterChip:
+                    id:    filter_natural
+                    text:  'Natural'
+                    group: 'note_filter'
+
+                FilterChip:
+                    id:    filter_sharps
+                    text:  'Sharps'
+                    group: 'note_filter'
+
+                Widget:
+
+            # ── Octave filter ──────────────────────────────────────────────
+            MDBoxLayout:
+                orientation:  'horizontal'
+                size_hint_y:  None
+                height:       dp(32)
+                spacing:      dp(5)
+
+                MDLabel:
+                    text:             'OCTAVE:'
+                    font_style:       'Overline'
+                    theme_text_color: 'Custom'
+                    text_color:       C_TEXT3
+                    size_hint_x:      None
+                    width:            dp(50)
+                    halign:           'right'
+                    text_size:        self.size
+                    valign:           'middle'
+
+                FilterChip:
+                    id:    oct_all
+                    text:  'All'
+                    group: 'oct_filter'
+                    state: 'down'
+
+                FilterChip:
+                    id:    oct_3
+                    text:  '3'
+                    group: 'oct_filter'
+
+                FilterChip:
+                    id:    oct_4
+                    text:  '4'
+                    group: 'oct_filter'
+
+                FilterChip:
+                    id:    oct_5
+                    text:  '5'
+                    group: 'oct_filter'
+
+                FilterChip:
+                    id:    oct_6
+                    text:  '6'
+                    group: 'oct_filter'
+
+                Widget:
+
+            WaveformWidget:
+                id:          notes_wave
+                size_hint_y: None
+                height:      dp(36)
+
+            SStatusLabel:
+                id:   notes_status
+                text: 'A4 = 432 Hz  ·  72 notes shown'
+
+            # ── Scrollable notes grid ──────────────────────────────────────
+            ScrollView:
+                do_scroll_x: False
+
+                GridLayout:
+                    id:          notes_grid
+                    cols:        3
+                    size_hint_y: None
+                    height:      self.minimum_height
+                    spacing:     dp(8)
+                    padding:     [0, dp(4), 0, dp(8)]

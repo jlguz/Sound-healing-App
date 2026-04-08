@@ -1,67 +1,67 @@
 """
 SoundHealer — Healing Through Sound
-KivyMD-based Android app.
-
-All visual styling is in soundhealer.kv.
-This file contains only logic, widget construction, and audio wiring.
-
+KivyMD app. Styling in soundhealer.kv, icons in assets.kv.
 Run:   python main.py
 Build: buildozer android debug
 """
 
-from kivymd.uix.button import MDRaisedButton, MDFlatButton
-
-from kivy.config import Config
-Config.set('graphics', 'width',     '420')   # logical pixels wide
-Config.set('graphics', 'height',    '909')   # logical pixels tall
-Config.set('graphics', 'resizable', '0')     # lock — no accidental resizing
-Config.set('graphics', 'dpi',       '480')   # base Android mdpi density
-
-import math
-
-
-from kivymd.app import MDApp
-from kivymd.uix.card import MDCard
-from kivymd.uix.label import MDLabel
-from kivymd.uix.boxlayout import MDBoxLayout
-
-from kivy.lang import Builder
-from kivy.uix.widget import Widget
-from kivy.uix.button import Button
-from kivy.uix.label import Label
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.gridlayout import GridLayout
-from kivy.graphics import Color, RoundedRectangle, Ellipse, Line, Rectangle
-from kivy.clock import Clock
-from kivy.metrics import dp, sp
-from kivy.utils import get_color_from_hex
-from kivy.properties import BooleanProperty, ListProperty
-
+from frequencies import (
+    SOLFEGGIO, CHAKRA, PRESETS, ORGANS, ORGAN_SYSTEMS, get_notes
+)
 from audio_engine import FrequencyEngine
-from frequencies import SOLFEGGIO, CHAKRA, PRESETS, get_notes
+from kivy.properties import BooleanProperty, ListProperty
+from kivy.utils import get_color_from_hex
+from kivy.metrics import dp, sp
+from kivy.clock import Clock
+from kivy.graphics import Color, RoundedRectangle, Ellipse, Line, Rectangle
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.label import Label
+from kivy.uix.button import Button
+from kivy.uix.widget import Widget
+from kivy.lang import Builder
+#from kivymd.uix.icon_definitions import md_icons
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.button import MDRaisedButton, MDFlatButton
+from kivymd.uix.label import MDLabel
+from kivymd.uix.card import MDCard
+from kivymd.app import MDApp
+from kivy.config import Config
+import math
+import os
+os.environ['KIVY_NO_ENV_CONFIG'] = '1'
 
-# ── Colour mirrors (for Python canvas ops) ─────────────────────────────────────
-BG      = (0.039, 0.039, 0.102, 1)
-CARD    = (0.102, 0.102, 0.208, 1)
-CARD2   = (0.118, 0.118, 0.235, 1)
-BORDER  = (0.165, 0.165, 0.314, 1)
-TEAL    = (0.024, 0.839, 0.627, 1)
-GOLD    = (0.957, 0.769, 0.188, 1)
-PINK    = (0.969, 0.145, 0.522, 1)
-PURPLE  = (0.482, 0.184, 0.745, 1)
-TEXT1   = (0.941, 0.941, 1.000, 1)
-TEXT2   = (0.565, 0.565, 0.690, 1)
-TEXT3   = (0.314, 0.314, 0.627, 1)
+# Nothing Phone 3: 6.67-inch AMOLED, 1260x2800px, 460 PPI, xxhdpi (3x)
+Config.set('graphics', 'width',     '420')
+Config.set('graphics', 'height',    '909')
+Config.set('graphics', 'resizable', '0')
+Config.set('graphics', 'dpi',       '480')
 
-# Single shared audio engine
+
+# ── Colour mirrors ─────────────────────────────────────────────────────────────
+BG = (0.039, 0.039, 0.102, 1)
+CARD = (0.102, 0.102, 0.208, 1)
+CARD2 = (0.118, 0.118, 0.235, 1)
+BORDER = (0.165, 0.165, 0.314, 1)
+TEAL = (0.024, 0.839, 0.627, 1)
+GOLD = (0.957, 0.769, 0.188, 1)
+PINK = (0.969, 0.145, 0.522, 1)
+PURPLE = (0.482, 0.184, 0.745, 1)
+TEXT1 = (0.941, 0.941, 1.000, 1)
+TEXT2 = (0.565, 0.565, 0.690, 1)
+TEXT3 = (0.314, 0.314, 0.627, 1)
+
 _engine = FrequencyEngine()
 
+Builder.load_file('assets.kv')
+Builder.load_file('soundhealer.kv')
+
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  WAVEFORM WIDGET  (pure canvas — no KivyMD equivalent)
+#  WAVEFORM WIDGET
 # ══════════════════════════════════════════════════════════════════════════════
 class WaveformWidget(Widget):
-    active     = BooleanProperty(False)
+    active = BooleanProperty(False)
     wave_color = ListProperty([*TEAL[:3], 1])
 
     def __init__(self, **kwargs):
@@ -90,25 +90,21 @@ class WaveformWidget(Widget):
         self.canvas.clear()
         with self.canvas:
             w, h = self.width, self.height
-            cx   = self.x
-            cy   = self.y + h / 2
-
+            cx = self.x
+            cy = self.y + h / 2
             if not self.active:
                 Color(*TEXT3)
                 Line(points=[self.x, cy, self.x + w, cy], width=dp(1.5))
                 return
-
             r, g, b, _ = self.wave_color
             Color(r, g, b, 0.12)
             pts = self._pts(cx, cy, w, h * 0.50, 3, 0.0)
             if pts:
                 Line(points=pts, width=dp(9))
-
             Color(r, g, b, 0.90)
             pts = self._pts(cx, cy, w, h * 0.36, 3, 0.0)
             if pts:
                 Line(points=pts, width=dp(2.5))
-
             Color(1, 1, 1, 0.28)
             pts = self._pts(cx, cy, w, h * 0.20, 3, 0.45)
             if pts:
@@ -116,7 +112,7 @@ class WaveformWidget(Widget):
 
     def _pts(self, cx, cy, width, amp, cycles, phase_off):
         steps = max(int(width / 2), 2)
-        pts   = []
+        pts = []
         for i in range(steps + 1):
             x = cx + (i / steps) * width
             y = cy + amp * math.sin(
@@ -127,25 +123,18 @@ class WaveformWidget(Widget):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  FREQUENCY CARD  (MDCard base, accent colour applied dynamically)
+#  FREQUENCY CARD  — uses MDIcon instead of emoji
 # ══════════════════════════════════════════════════════════════════════════════
 class FrequencyCard(MDCard):
-    """
-    KV rule sets the card frame (radius, elevation, size).
-    Python __init__ builds internal MDLabel/MDRaisedButton content
-    and applies the per-frequency accent colour.
-    """
 
     def __init__(self, data: dict, engine: FrequencyEngine,
                  on_play_callback=None, **kwargs):
         super().__init__(**kwargs)
-        self._data    = data
-        self._engine  = engine
+        self._data = data
+        self._engine = engine
         self._playing = False
         self._on_play = on_play_callback
-        self._accent  = get_color_from_hex(data.get('color', '#7B2FBE'))
-
-        # Card background — accent tint over dark base
+        self._accent = get_color_from_hex(data.get('color', '#7B2FBE'))
         r, g, b, _ = self._accent
         self.md_bg_color = (
             CARD[0] + r * 0.08,
@@ -153,24 +142,29 @@ class FrequencyCard(MDCard):
             CARD[2] + b * 0.08,
             1
         )
-
         self._build()
 
     def _build(self):
         d = self._data
 
-        # ── Row 1: icon · name · note badge ──────────────────────────────────
+        # ── Row 1: icon · name · badge ────────────────────────────────────────
         top = BoxLayout(orientation='horizontal',
-                        size_hint_y=None, height=dp(28), spacing=dp(4))
+                        size_hint_y=None, height=dp(32), spacing=dp(6))
 
-        icon_l = MDLabel(
-            text=d.get('icon', '◉'),
-            theme_text_color='Custom', text_color=self._accent,
-            font_style='H6',
-            size_hint_x=None, width=dp(32),
-            halign='left', valign='middle'
+        # MDIcon — renders from Material Design icon font (works on Android)
+        icon_name = d.get('md_icon', 'circle')
+        from kivymd.uix.label import MDIcon
+        icon_w = MDIcon(
+            icon=icon_name,
+            theme_text_color='Custom',
+            text_color=self._accent,
+            size_hint=(None, None),
+            size=(dp(28), dp(28)),
+            font_size=sp(20),
+            halign='center',
+            valign='middle',
         )
-        icon_l.bind(size=icon_l.setter('text_size'))
+        top.add_widget(icon_w)
 
         name_l = MDLabel(
             text=d['name'],
@@ -179,8 +173,10 @@ class FrequencyCard(MDCard):
             halign='left', valign='middle'
         )
         name_l.bind(size=name_l.setter('text_size'))
+        top.add_widget(name_l)
 
-        badge_text = d.get('note') or d.get('sanskrit') or ''
+        badge_text = d.get('note') or d.get(
+            'sanskrit') or d.get('system') or ''
         badge = MDLabel(
             text=badge_text,
             theme_text_color='Custom', text_color=self._accent,
@@ -189,9 +185,6 @@ class FrequencyCard(MDCard):
             halign='right', valign='middle'
         )
         badge.bind(size=badge.setter('text_size'))
-
-        top.add_widget(icon_l)
-        top.add_widget(name_l)
         top.add_widget(badge)
         self.add_widget(top)
 
@@ -205,9 +198,9 @@ class FrequencyCard(MDCard):
         bft.bind(size=bft.setter('text_size'))
         self.add_widget(bft)
 
-        # ── Row 3: play btn + Hz label ────────────────────────────────────────
+        # ── Row 3: play button + Hz label ─────────────────────────────────────
         bottom = BoxLayout(orientation='horizontal',
-                           size_hint_y=None, height=dp(38), spacing=dp(8))
+                           size_hint_y=None, height=dp(40), spacing=dp(8))
 
         self._play_btn = MDRaisedButton(
             text='PLAY',
@@ -254,19 +247,18 @@ class FrequencyCard(MDCard):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  NOTE CARD  (compact 3-col grid card for Notes screen)
+#  NOTE CARD
 # ══════════════════════════════════════════════════════════════════════════════
 class NoteCard(MDCard):
 
     def __init__(self, data: dict, engine: FrequencyEngine,
                  on_play_callback=None, **kwargs):
         super().__init__(**kwargs)
-        self._data    = data
-        self._engine  = engine
+        self._data = data
+        self._engine = engine
         self._playing = False
         self._on_play = on_play_callback
-        self._accent  = get_color_from_hex(data.get('color', '#7B2FBE'))
-
+        self._accent = get_color_from_hex(data.get('color', '#7B2FBE'))
         r, g, b, _ = self._accent
         self.md_bg_color = (
             CARD[0] + r * 0.06,
@@ -300,9 +292,8 @@ class NoteCard(MDCard):
         freq_l.bind(size=freq_l.setter('text_size'))
         self.add_widget(freq_l)
 
-        chakra_text = d.get('chakra', '')
         ck_l = MDLabel(
-            text=chakra_text if chakra_text else '',
+            text=d.get('chakra', ''),
             theme_text_color='Custom', text_color=TEXT3,
             font_style='Caption',
             halign='center', valign='middle',
@@ -312,9 +303,9 @@ class NoteCard(MDCard):
         self.add_widget(ck_l)
 
         self._play_btn = MDRaisedButton(
-            text='▶',
+            text='play',
             elevation=0,
-            font_size=sp(12),
+            font_size=sp(11),
             md_bg_color=(*self._accent[:3], 0.85),
             text_color=BG,
             size_hint_y=None,
@@ -330,18 +321,18 @@ class NoteCard(MDCard):
         if self._on_play:
             self._on_play(self)
         self._playing = True
-        self._play_btn.text = '■'
+        self._play_btn.text = 'stop'
         self._engine.play(self._data['freq'])
 
     def _stop(self):
         self._playing = False
-        self._play_btn.text = '▶'
+        self._play_btn.text = 'play'
         self._engine.stop()
 
     def force_stop(self):
         if self._playing:
             self._playing = False
-            self._play_btn.text = '▶'
+            self._play_btn.text = 'play'
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -351,32 +342,33 @@ class SoundHealerApp(MDApp):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.title         = 'Sound Healer'
-        self._sol_cards    = []
-        self._cha_cards    = []
-        self._note_cards   = []
-        self._tuning       = 432.0
-        self._note_filt    = 'all'
-        self._oct_filt     = 'all'
+        self.title = 'Sound Healer'
+        self._sol_cards = []
+        self._cha_cards = []
+        self._org_cards = []
+        self._note_cards = []
+        self._tuning = 432.0
+        self._note_filt = 'all'
+        self._oct_filt = 'all'
+        self._organ_sys_filt = 'All'
+        self._org_sys_chips = {}
 
-    # ── Theme setup ───────────────────────────────────────────────────────────
     def build(self):
-        self.theme_cls.theme_style      = 'Dark'
-        self.theme_cls.primary_palette  = 'DeepPurple'
-        self.theme_cls.accent_palette   = 'Teal'
+        self.theme_cls.theme_style = 'Dark'
+        self.theme_cls.primary_palette = 'DeepPurple'
+        self.theme_cls.accent_palette = 'Teal'
         return Builder.load_file('soundhealer.kv')
 
-    # ── Populate all dynamic content after KV is ready ────────────────────────
     def on_start(self):
         ids = self.root.ids
         self._build_home_grid(ids)
         self._build_solfeggio(ids)
         self._build_chakra(ids)
+        self._build_organs(ids)
         self._build_notes(ids)
         self._wire_custom(ids)
         Clock.schedule_interval(self._update_home_status, 0.4)
 
-    # ── Switch tab programmatically ───────────────────────────────────────────
     def switch_tab(self, name):
         self.root.switch_tab(name)
 
@@ -386,15 +378,23 @@ class SoundHealerApp(MDApp):
     def _build_home_grid(self, ids):
         grid = ids.home_grid
         sections = [
-            ('✦',  'Solfeggio\nFrequencies', '#F4C430', 'solfeggio', '10 ancient healing tones'),
-            ('◉',  'Chakra\nFrequencies',    '#7B2FBE', 'chakra',    '7 energy centres'),
-            ('〰',  'Custom\nGenerator',      '#06D6A0', 'custom',    'Any frequency'),
-            ('♪',  'Musical\nNotes',          '#F72585', 'notes',     'All 12 · 432 Hz'),
+            ('star-four-points', 'Solfeggio\nFrequencies',
+             '#F4C430', 'solfeggio', '10 ancient healing tones'),
+            ('circle-multiple-outline', 'Chakra\nFrequencies',
+             '#7B2FBE', 'chakra', '7 energy centres'),
+            ('heart-pulse', 'Organ\nFrequencies',
+             '#F72585', 'organs', '14 body organs'),
+            ('tune', 'Custom\nGenerator', '#06D6A0', 'custom', 'Any frequency'),
+            ('music-note', 'Musical\nNotes', '#48CAE4', 'notes', 'All 12 · 432 Hz'),
         ]
+        # Use 2 columns but override to 2 rows x 2 + 1 centered
+        grid.cols = 2
         for icon, label, color, screen, desc in sections:
-            grid.add_widget(self._make_home_tile(icon, label, color, screen, desc))
+            grid.add_widget(self._make_home_tile(
+                icon, label, color, screen, desc))
 
-    def _make_home_tile(self, icon, label, color, screen, desc):
+    def _make_home_tile(self, icon_name, label, color, screen, desc):
+        from kivymd.uix.label import MDIcon
         accent = get_color_from_hex(color)
         r, g, b, _ = accent
 
@@ -413,12 +413,15 @@ class SoundHealerApp(MDApp):
             )
         )
 
-        icon_l = MDLabel(
-            text=icon,
-            theme_text_color='Custom', text_color=accent,
-            font_style='H5',
-            size_hint_y=None, height=dp(38),
-            halign='center'
+        # MDIcon — guaranteed to render on Android
+        icon_w = MDIcon(
+            icon=icon_name,
+            theme_text_color='Custom',
+            text_color=accent,
+            size_hint_y=None,
+            height=dp(38),
+            font_size=sp(28),
+            halign='center',
         )
         name_l = MDLabel(
             text=label,
@@ -435,7 +438,7 @@ class SoundHealerApp(MDApp):
         )
         desc_l.bind(size=desc_l.setter('text_size'))
 
-        tile.add_widget(icon_l)
+        tile.add_widget(icon_w)
         tile.add_widget(name_l)
         tile.add_widget(desc_l)
 
@@ -445,17 +448,17 @@ class SoundHealerApp(MDApp):
         return tile
 
     def _update_home_status(self, *_):
-        lbl  = self.root.ids.home_status
+        lbl = self.root.ids.home_status
         wave = self.root.ids.home_wave
         if _engine.is_playing:
-            lbl.text       = f'▶  {_engine.current_freq:.2f} Hz'
+            lbl.text = f'Playing  {_engine.current_freq:.2f} Hz'
             lbl.text_color = TEAL
             wave.wave_color = [*TEAL[:3], 1]
-            wave.active    = True
+            wave.active = True
         else:
-            lbl.text       = 'Nothing playing'
+            lbl.text = 'Nothing playing'
             lbl.text_color = TEXT2
-            wave.active    = False
+            wave.active = False
 
     # ══════════════════════════════════════════════════════════════════════════
     #  CUSTOM GENERATOR
@@ -479,27 +482,29 @@ class SoundHealerApp(MDApp):
             )
             with btn.canvas.before:
                 Color(*BORDER)
-                rr = RoundedRectangle(pos=btn.pos, size=btn.size, radius=[dp(8)])
+                rr = RoundedRectangle(
+                    pos=btn.pos, size=btn.size, radius=[dp(8)])
             btn.bind(
-                pos=lambda b, _, rr=rr: setattr(rr, 'pos', b.pos),
+                pos=lambda b, _, rr=rr:  setattr(rr, 'pos',  b.pos),
                 size=lambda b, _, rr=rr: setattr(rr, 'size', b.size),
-                on_release=lambda b, freq=p['freq']: self._set_custom_freq(freq)
+                on_release=lambda b, freq=p['freq']: self._set_custom_freq(
+                    freq)
             )
             grid.add_widget(btn)
 
     def _on_freq_text(self, instance, value):
         try:
             freq = float(value)
-            ids  = self.root.ids
-            ids.freq_display.text  = f'{freq:.2f} Hz'
-            ids.freq_slider.value  = max(20.0, min(2000.0, freq))
+            ids = self.root.ids
+            ids.freq_display.text = f'{freq:.2f} Hz'
+            ids.freq_slider.value = max(20.0, min(2000.0, freq))
         except ValueError:
             pass
 
     def _on_freq_slider(self, instance, value):
         ids = self.root.ids
-        ids.freq_input.text       = f'{value:.1f}'
-        ids.freq_display.text     = f'{value:.2f} Hz'
+        ids.freq_input.text = f'{value:.1f}'
+        ids.freq_display.text = f'{value:.2f} Hz'
 
     def _on_volume(self, instance, value):
         _engine.set_volume(value)
@@ -507,7 +512,7 @@ class SoundHealerApp(MDApp):
 
     def _set_custom_freq(self, freq):
         ids = self.root.ids
-        ids.freq_input.text   = str(freq)
+        ids.freq_input.text = str(freq)
         ids.freq_display.text = f'{freq:.2f} Hz'
         ids.freq_slider.value = max(20.0, min(2000.0, float(freq)))
 
@@ -516,7 +521,7 @@ class SoundHealerApp(MDApp):
             freq = float(self.root.ids.freq_input.text)
             _engine.play(freq)
             self.root.ids.custom_wave.wave_color = [*TEAL[:3], 1]
-            self.root.ids.custom_wave.active     = True
+            self.root.ids.custom_wave.active = True
         except ValueError:
             pass
 
@@ -528,40 +533,38 @@ class SoundHealerApp(MDApp):
     #  SOLFEGGIO
     # ══════════════════════════════════════════════════════════════════════════
     def _build_solfeggio(self, ids):
-        container = ids.solfeggio_cards
         for data in SOLFEGGIO:
             card = FrequencyCard(
                 data=data, engine=_engine,
                 on_play_callback=self._on_solfeggio_play
             )
             self._sol_cards.append(card)
-            container.add_widget(card)
+            ids.solfeggio_cards.add_widget(card)
 
     def _on_solfeggio_play(self, active_card):
         for c in self._sol_cards:
             if c is not active_card:
                 c.force_stop()
-        freq  = active_card._data['freq']
+        freq = active_card._data['freq']
         color = get_color_from_hex(active_card._data['color'])
-        ids   = self.root.ids
-        ids.solfeggio_status.text       = f'▶  {freq} Hz  —  {active_card._data["benefit"]}'
+        ids = self.root.ids
+        ids.solfeggio_status.text = f'Playing  {freq} Hz  —  {active_card._data["benefit"]}'
         ids.solfeggio_status.text_color = color
-        ids.solfeggio_wave.wave_color   = [*color[:3], 1]
-        ids.solfeggio_wave.active       = True
+        ids.solfeggio_wave.wave_color = [*color[:3], 1]
+        ids.solfeggio_wave.active = True
 
     # ══════════════════════════════════════════════════════════════════════════
     #  CHAKRA
     # ══════════════════════════════════════════════════════════════════════════
     def _build_chakra(self, ids):
         self._build_chakra_spine(ids.chakra_spine)
-        container = ids.chakra_cards
         for data in CHAKRA:
             card = FrequencyCard(
                 data=data, engine=_engine,
                 on_play_callback=self._on_chakra_play
             )
             self._cha_cards.append(card)
-            container.add_widget(card)
+            ids.chakra_cards.add_widget(card)
 
     def _build_chakra_spine(self, spine):
         for ch in CHAKRA:
@@ -573,57 +576,162 @@ class SoundHealerApp(MDApp):
 
             def upd(inst, _, e=e):
                 e.pos = (inst.center_x - dp(15), inst.center_y - dp(15))
-
             dot.bind(pos=upd, size=upd)
-            dot.add_widget(Label(text=ch['symbol'], font_size=sp(12), color=TEXT1))
+            from kivymd.uix.label import MDIcon
+            icon_w = MDIcon(
+                icon=ch['md_icon'],
+                theme_text_color='Custom',
+                text_color=TEXT1,
+                font_size=sp(14),
+                halign='center',
+            )
+            dot.add_widget(icon_w)
             spine.add_widget(dot)
 
     def _on_chakra_play(self, active_card):
         for c in self._cha_cards:
             if c is not active_card:
                 c.force_stop()
-        freq  = active_card._data['freq']
-        name  = active_card._data['name']
+        freq = active_card._data['freq']
+        name = active_card._data['name']
         color = get_color_from_hex(active_card._data['color'])
-        ids   = self.root.ids
-        ids.chakra_status.text       = f'▶  {name}  ·  {freq} Hz'
+        ids = self.root.ids
+        ids.chakra_status.text = f'Playing  {name}  {freq} Hz'
         ids.chakra_status.text_color = color
-        ids.chakra_wave.wave_color   = [*color[:3], 1]
-        ids.chakra_wave.active       = True
+        ids.chakra_wave.wave_color = [*color[:3], 1]
+        ids.chakra_wave.active = True
+
+    # ══════════════════════════════════════════════════════════════════════════
+    #  ORGANS
+    # ══════════════════════════════════════════════════════════════════════════
+    def _build_organs(self, ids):
+        self._build_organ_filters(ids)
+        self._rebuild_organ_cards('All')
+
+    def _build_organ_filters(self, ids):
+        from kivy.uix.togglebutton import ToggleButton
+        row = ids.organs_filter_row
+
+        # "All" chip
+        all_chip = ToggleButton(
+            text='All', group='organ_sys',
+            state='down',
+            size_hint=(None, None),
+            size=(dp(46), dp(28)),
+            background_normal='', background_down='',
+            background_color=(0, 0, 0, 0),
+            color=BG, font_size=sp(11), bold=True
+        )
+        with all_chip.canvas.before:
+            Color(*TEAL)
+            rr = RoundedRectangle(
+                pos=all_chip.pos, size=all_chip.size, radius=[dp(14)])
+
+        def upd_all(inst, _, rr=rr): rr.pos = inst.pos; rr.size = inst.size
+        all_chip.bind(pos=upd_all, size=upd_all)
+        all_chip.bind(on_release=lambda *_: self._rebuild_organ_cards('All'))
+        self._org_sys_chips['All'] = (all_chip, rr)
+        row.add_widget(all_chip)
+
+        for sys_name in ORGAN_SYSTEMS:
+            chip = ToggleButton(
+                text=sys_name, group='organ_sys',
+                size_hint=(None, None),
+                size=(dp(max(60, len(sys_name) * 7 + 16)), dp(28)),
+                background_normal='', background_down='',
+                background_color=(0, 0, 0, 0),
+                color=TEXT2, font_size=sp(11)
+            )
+            with chip.canvas.before:
+                Color(*BORDER)
+                rr2 = RoundedRectangle(
+                    pos=chip.pos, size=chip.size, radius=[dp(14)])
+
+            def upd_chip(
+                inst, _, rr=rr2): rr.pos = inst.pos
+            rr.size = inst.size
+            chip.bind(pos=upd_chip, size=upd_chip)
+            chip.bind(on_release=lambda b,
+                      s=sys_name: self._rebuild_organ_cards(s))
+            self._org_sys_chips[sys_name] = (chip, rr2)
+            row.add_widget(chip)
+
+    def _rebuild_organ_cards(self, system_filter: str):
+        _engine.stop()
+        for c in self._org_cards:
+            c.force_stop()
+        self._org_cards.clear()
+        self.root.ids.organs_cards.clear_widgets()
+        self._organ_sys_filt = system_filter
+
+        # Update chip colours
+        for name, (chip, rr) in self._org_sys_chips.items():
+            active = (name == system_filter)
+            chip.color = BG if active else TEXT2
+            rr.canvas.before  # access to update
+            with chip.canvas.before:
+                Color(*(TEAL if active else BORDER))
+                rr.__class__(pos=chip.pos, size=chip.size, radius=[dp(14)])
+
+        organs = ORGANS if system_filter == 'All' else [
+            o for o in ORGANS if o['system'] == system_filter
+        ]
+
+        ids = self.root.ids
+        ids.organs_status.text = f'{len(organs)} organs shown'
+        ids.organs_status.text_color = PINK
+        ids.organs_wave.active = False
+
+        for data in organs:
+            card = FrequencyCard(
+                data=data, engine=_engine,
+                on_play_callback=self._on_organ_play
+            )
+            self._org_cards.append(card)
+            ids.organs_cards.add_widget(card)
+
+    def _on_organ_play(self, active_card):
+        for c in self._org_cards:
+            if c is not active_card:
+                c.force_stop()
+        freq = active_card._data['freq']
+        name = active_card._data['name']
+        color = get_color_from_hex(active_card._data['color'])
+        ids = self.root.ids
+        ids.organs_status.text = f'Playing  {name}  {freq} Hz'
+        ids.organs_status.text_color = color
+        ids.organs_wave.wave_color = [*color[:3], 1]
+        ids.organs_wave.active = True
 
     # ══════════════════════════════════════════════════════════════════════════
     #  MUSICAL NOTES
     # ══════════════════════════════════════════════════════════════════════════
     def _build_notes(self, ids):
-        # Wire tuning toggles
         ids.btn_440.bind(on_release=lambda *_: self._set_tuning(440.0))
         ids.btn_432.bind(on_release=lambda *_: self._set_tuning(432.0))
-
-        # Wire note-type filters
-        ids.filter_all.bind(    on_release=lambda *_: self._set_note_filt('all'))
-        ids.filter_natural.bind(on_release=lambda *_: self._set_note_filt('natural'))
-        ids.filter_sharps.bind( on_release=lambda *_: self._set_note_filt('sharps'))
-
-        # Wire octave filters
+        ids.filter_all.bind(on_release=lambda *_: self._set_note_filt('all'))
+        ids.filter_natural.bind(
+            on_release=lambda *_: self._set_note_filt('natural'))
+        ids.filter_sharps.bind(
+            on_release=lambda *_: self._set_note_filt('sharps'))
         ids.oct_all.bind(on_release=lambda *_: self._set_oct_filt('all'))
         for n in [3, 4, 5, 6]:
             ids[f'oct_{n}'].bind(
                 on_release=lambda b, v=str(n): self._set_oct_filt(v)
             )
-
         self._rebuild_notes_grid()
 
-    def _set_tuning(self, tuning: float):
+    def _set_tuning(self, tuning):
         if tuning == self._tuning:
             return
         self._tuning = tuning
         self._rebuild_notes_grid()
 
-    def _set_note_filt(self, filt: str):
+    def _set_note_filt(self, filt):
         self._note_filt = filt
         self._rebuild_notes_grid()
 
-    def _set_oct_filt(self, filt: str):
+    def _set_oct_filt(self, filt):
         self._oct_filt = filt
         self._rebuild_notes_grid()
 
@@ -632,35 +740,27 @@ class SoundHealerApp(MDApp):
         for c in self._note_cards:
             c.force_stop()
         self._note_cards.clear()
-
-        ids  = self.root.ids
+        ids = self.root.ids
         grid = ids.notes_grid
         grid.clear_widgets()
 
         notes = get_notes(self._tuning)
-
         if self._note_filt == 'natural':
             notes = [n for n in notes if n['is_natural']]
         elif self._note_filt == 'sharps':
             notes = [n for n in notes if not n['is_natural']]
-
         if self._oct_filt != 'all':
-            oct_n = int(self._oct_filt)
-            notes = [n for n in notes if n['octave'] == oct_n]
+            notes = [n for n in notes if n['octave'] == int(self._oct_filt)]
 
-        tuning_str = f'{int(self._tuning)} Hz'
-        ids.notes_status.text       = f'A4 = {tuning_str}  ·  {len(notes)} notes shown'
+        ids.notes_status.text = f'A4 = {int(self._tuning)} Hz  ·  {len(notes)} notes'
         ids.notes_status.text_color = GOLD if self._tuning == 432.0 else PINK
-
-        wave_col = GOLD if self._tuning == 432.0 else PINK
-        ids.notes_wave.wave_color = [*wave_col[:3], 1]
-        ids.notes_wave.active     = False
+        ids.notes_wave.wave_color = [
+            *(GOLD if self._tuning == 432.0 else PINK)[:3], 1]
+        ids.notes_wave.active = False
 
         for data in notes:
-            card = NoteCard(
-                data=data, engine=_engine,
-                on_play_callback=self._on_note_play
-            )
+            card = NoteCard(data=data, engine=_engine,
+                            on_play_callback=self._on_note_play)
             self._note_cards.append(card)
             grid.add_widget(card)
 
@@ -668,19 +768,17 @@ class SoundHealerApp(MDApp):
         for c in self._note_cards:
             if c is not active_card:
                 c.force_stop()
-        d     = active_card._data
+        d = active_card._data
         color = get_color_from_hex(d['color'])
-        ids   = self.root.ids
-        ids.notes_status.text       = f'▶  {d["full"]}  —  {d["freq_str"]} Hz'
+        ids = self.root.ids
+        ids.notes_status.text = f'Playing  {d["full"]}  {d["freq_str"]} Hz'
         ids.notes_status.text_color = color
-        ids.notes_wave.wave_color   = [*color[:3], 1]
-        ids.notes_wave.active       = True
+        ids.notes_wave.wave_color = [*color[:3], 1]
+        ids.notes_wave.active = True
 
-    # ── Cleanup ───────────────────────────────────────────────────────────────
     def on_stop(self):
         _engine.stop()
 
 
-# ══════════════════════════════════════════════════════════════════════════════
 if __name__ == '__main__':
     SoundHealerApp().run()

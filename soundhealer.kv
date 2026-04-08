@@ -3,7 +3,7 @@
 #:import sp  kivy.metrics.sp
 
 # ═══════════════════════════════════════════════════════════════════════════════
-#  COLOUR PALETTE  — referenced throughout via #:set constants
+#  COLOUR PALETTE
 # ═══════════════════════════════════════════════════════════════════════════════
 #:set C_BG      [0.039, 0.039, 0.102, 1]
 #:set C_SURFACE [0.067, 0.067, 0.157, 1]
@@ -23,18 +23,16 @@
 #  REUSABLE WIDGET RULES
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# ── FrequencyCard (MDCard with custom accent, content built in Python) ─────────
 <FrequencyCard>:
     elevation:       0
     radius:          [dp(16)]
     ripple_behavior: False
     size_hint_y:     None
-    height:          dp(130)
+    height:          dp(148)
     orientation:     'vertical'
     padding:         [dp(14), dp(12), dp(14), dp(10)]
-    spacing:         dp(6)
+    spacing:         dp(5)
 
-# ── NoteCard (compact 3-col grid card, content built in Python) ───────────────
 <NoteCard>:
     elevation:       0
     radius:          [dp(12)]
@@ -45,7 +43,6 @@
     padding:         [dp(8), dp(8)]
     spacing:         dp(3)
 
-# ── Styled label helpers ──────────────────────────────────────────────────────
 <SHeadingLabel@MDLabel>:
     font_style:       'H5'
     theme_text_color: 'Custom'
@@ -86,20 +83,17 @@
     height:           dp(26)
     text_size:        self.size
 
-# ── Teal primary action button ────────────────────────────────────────────────
 <STealButton@MDRaisedButton>:
-    elevation:    0
-    font_size:    sp(13)
-    md_bg_color:  C_TEAL
-    text_color:   C_BG
-    _radius:      dp(10)
+    elevation:   0
+    font_size:   sp(13)
+    md_bg_color: C_TEAL
+    text_color:  C_BG
+    _radius:     dp(10)
 
-# ── Ghost / secondary button ──────────────────────────────────────────────────
 <SGhostButton@MDFlatButton>:
     font_size:          sp(13)
     theme_text_color:   'Custom'
     text_color:         C_TEXT2
-    line_color:         C_BORDER
     canvas.before:
         Color:
             rgba: C_BORDER
@@ -108,16 +102,15 @@
             size:   self.size
             radius: [dp(10)]
 
-# ── Filter toggle chip ─────────────────────────────────────────────────────────
 <FilterChip@ToggleButton>:
-    background_normal:   ''
-    background_down:     ''
-    background_color:    0, 0, 0, 0
-    color:               C_TEXT2 if self.state == 'normal' else [0.039, 0.039, 0.102, 1]
-    font_size:           sp(11)
-    bold:                self.state == 'down'
-    size_hint_y:         None
-    height:              dp(30)
+    background_normal:  ''
+    background_down:    ''
+    background_color:   0, 0, 0, 0
+    color:              C_TEXT2 if self.state == 'normal' else [0.039, 0.039, 0.102, 1]
+    font_size:          sp(11)
+    bold:               self.state == 'down'
+    size_hint_y:        None
+    height:             dp(30)
     canvas.before:
         Color:
             rgba: C_TEAL if self.state == 'down' else C_BORDER
@@ -126,16 +119,15 @@
             size:   self.size
             radius: [dp(15)]
 
-# ── Tuning toggle (gold when active) ──────────────────────────────────────────
 <TuningToggle@ToggleButton>:
-    background_normal:   ''
-    background_down:     ''
-    background_color:    0, 0, 0, 0
-    color:               [0.039, 0.039, 0.102, 1] if self.state == 'down' else C_TEXT2
-    font_size:           sp(12)
-    bold:                self.state == 'down'
-    size_hint_y:         None
-    height:              dp(38)
+    background_normal:  ''
+    background_down:    ''
+    background_color:   0, 0, 0, 0
+    color:              [0.039, 0.039, 0.102, 1] if self.state == 'down' else C_TEXT2
+    font_size:          sp(12)
+    bold:               self.state == 'down'
+    size_hint_y:        None
+    height:             dp(38)
     canvas.before:
         Color:
             rgba: C_GOLD if self.state == 'down' else C_BORDER
@@ -144,7 +136,6 @@
             size:   self.size
             radius: [dp(10)]
 
-# ── Surface card container ─────────────────────────────────────────────────────
 <SurfaceCard@MDCard>:
     elevation:       0
     radius:          [dp(14)]
@@ -159,10 +150,10 @@
 #  ROOT — MDBottomNavigation
 # ═══════════════════════════════════════════════════════════════════════════════
 MDBottomNavigation:
-    id:                      root_nav
-    panel_color:             C_SURFACE
-    text_color_active:       C_TEAL
-    text_color_normal:       C_TEXT3
+    id:                        root_nav
+    panel_color:               C_SURFACE
+    text_color_active:         C_TEAL
+    text_color_normal:         C_TEXT3
     selected_color_background: 0.024, 0.839, 0.627, 0.15
 
     # ── HOME ────────────────────────────────────────────────────────────────
@@ -174,55 +165,35 @@ MDBottomNavigation:
         MDBoxLayout:
             orientation:  'vertical'
             md_bg_color:  C_BG
-            padding:      [dp(20), dp(18), dp(20), dp(8)]
-            spacing:      dp(10)
+            padding:      [dp(20), dp(24), dp(20), dp(8)]
+            spacing:      dp(14)
 
+            # ── Single main title ────────────────────────────────────────────
             MDLabel:
                 text:             'Healing Through Sound'
-                font_style:       'Body2'
+                font_style:       'H4'
                 theme_text_color: 'Custom'
                 text_color:       C_TEAL
                 halign:           'center'
                 size_hint_y:      None
-                height:           dp(26)
-                text_size:        self.size
-
-            MDLabel:
-                text:             'Sound Healer'
-                font_style:       'H3'
-                theme_text_color: 'Custom'
-                text_color:       C_TEXT1
-                halign:           'center'
-                size_hint_y:      None
-                height:           dp(64)
-                text_size:        self.size
-
-            MDLabel:
-                text:             'Pure  ·  Accurate  ·  Therapeutic'
-                font_style:       'Body2'
-                text_color:       C_TEXT2
-                halign:           'center'
-                size_hint_y:      None
-                height:           dp(26)
+                height:           dp(56)
                 text_size:        self.size
 
             WaveformWidget:
                 id:          home_wave
                 size_hint_y: None
-                height:      dp(68)
+                height:      dp(72)
 
-            #SSectionLabel:
-            #    text: 'EXPLORE'
-
+            # ── 2-column grid ────────────────────────────────────────────────
             GridLayout:
                 id:          home_grid
                 cols:        2
-                spacing:     dp(10)
+                spacing:     dp(12)
                 size_hint_y: None
-                height:      dp(200)
+                height:      dp(240)
 
             SStatusLabel:
-                id: home_status
+                id:   home_status
                 text: 'Nothing playing'
 
             Widget:
@@ -241,10 +212,10 @@ MDBottomNavigation:
                 do_scroll_x: False
 
                 MDBoxLayout:
-                    orientation:  'vertical'
-                    md_bg_color:  C_BG
-                    padding:      [dp(18), dp(14), dp(18), dp(8)]
-                    spacing:      dp(10)
+                    orientation:     'vertical'
+                    md_bg_color:     C_BG
+                    padding:         [dp(18), dp(14), dp(18), dp(8)]
+                    spacing:         dp(10)
                     adaptive_height: True
 
                     SHeadingLabel:
@@ -269,7 +240,6 @@ MDBottomNavigation:
                         size_hint_y: None
                         height:      dp(60)
 
-                    # ── Input card ─────────────────────────────────────────
                     SurfaceCard:
                         size_hint_y: None
                         height:      dp(158)
@@ -278,21 +248,21 @@ MDBottomNavigation:
                             text: 'ENTER FREQUENCY (Hz)'
 
                         MDTextField:
-                            id:                    freq_input
-                            text:                  '432'
-                            hint_text:             'e.g. 528'
-                            input_filter:          'float'
-                            mode:                  'fill'
-                            fill_color_normal:     C_BORDER
-                            fill_color_focus:      C_BORDER
-                            text_color_normal:     C_TEXT1
-                            text_color_focus:      C_TEXT1
+                            id:                     freq_input
+                            text:                   '432'
+                            hint_text:              'e.g. 528'
+                            input_filter:           'float'
+                            mode:                   'fill'
+                            fill_color_normal:      C_BORDER
+                            fill_color_focus:       C_BORDER
+                            text_color_normal:      C_TEXT1
+                            text_color_focus:       C_TEXT1
                             hint_text_color_normal: C_TEXT2
-                            line_color_normal:     0, 0, 0, 0
-                            line_color_focus:      C_TEAL
-                            font_size:             sp(20)
-                            size_hint_y:           None
-                            height:                dp(46)
+                            line_color_normal:      0, 0, 0, 0
+                            line_color_focus:       C_TEAL
+                            font_size:              sp(20)
+                            size_hint_y:            None
+                            height:                 dp(46)
 
                         MDBoxLayout:
                             orientation:  'horizontal'
@@ -311,13 +281,13 @@ MDBottomNavigation:
                                 text_size:        self.size
 
                             MDSlider:
-                                id:                   freq_slider
-                                min:                  20
-                                max:                  2000
-                                value:                432
-                                hint:                 False
-                                color:                C_TEAL
-                                thumb_color_active:   C_TEAL
+                                id:                  freq_slider
+                                min:                 20
+                                max:                 2000
+                                value:               432
+                                hint:                False
+                                color:               C_TEAL
+                                thumb_color_active:  C_TEAL
 
                             MDLabel:
                                 text:             '2k'
@@ -329,7 +299,6 @@ MDBottomNavigation:
                                 halign:           'center'
                                 text_size:        self.size
 
-                    # ── Volume card ────────────────────────────────────────
                     MDCard:
                         elevation:       0
                         radius:          [dp(12)]
@@ -343,12 +312,12 @@ MDBottomNavigation:
                             orientation: 'horizontal'
                             spacing:     dp(8)
 
-                            MDLabel:
-                                text:        '🔊'
-                                font_style:  'H6'
+                            MDIcon:
+                                icon:        'volume-high'
                                 size_hint_x: None
                                 width:       dp(34)
-                                halign:      'center'
+                                theme_text_color: 'Custom'
+                                text_color:  C_TEXT2
 
                             MDSlider:
                                 id:                  vol_slider
@@ -370,7 +339,6 @@ MDBottomNavigation:
                                 halign:           'right'
                                 text_size:        self.size
 
-                    # ── Play / Stop ────────────────────────────────────────
                     MDBoxLayout:
                         orientation:  'horizontal'
                         size_hint_y:  None
@@ -437,13 +405,13 @@ MDBottomNavigation:
                 do_scroll_x: False
 
                 MDBoxLayout:
-                    id:              solfeggio_cards
-                    orientation:     'vertical'
-                    md_bg_color:     C_BG
-                    size_hint_y:     None
-                    height:          self.minimum_height
-                    spacing:         dp(10)
-                    padding:         [0, dp(4), 0, dp(8)]
+                    id:             solfeggio_cards
+                    orientation:    'vertical'
+                    md_bg_color:    C_BG
+                    size_hint_y:    None
+                    height:         self.minimum_height
+                    spacing:        dp(10)
+                    padding:        [0, dp(4), 0, dp(8)]
 
     # ── CHAKRA ───────────────────────────────────────────────────────────────
     MDBottomNavigationItem:
@@ -478,7 +446,6 @@ MDBottomNavigation:
                 height:      dp(52)
                 padding:     [dp(8), dp(6)]
                 spacing:     dp(4)
-                # dots added in Python
 
             WaveformWidget:
                 id:          chakra_wave
@@ -501,11 +468,73 @@ MDBottomNavigation:
                     spacing:     dp(10)
                     padding:     [0, dp(4), 0, dp(8)]
 
+    # ── ORGANS ───────────────────────────────────────────────────────────────
+    MDBottomNavigationItem:
+        name: 'organs'
+        text: 'Organs'
+        icon: 'heart-pulse'
+
+        MDBoxLayout:
+            orientation: 'vertical'
+            md_bg_color: C_BG
+            padding:     [dp(14), dp(10), dp(14), dp(4)]
+            spacing:     dp(6)
+
+            SHeadingLabel:
+                text: 'Organ Frequencies'
+
+            MDLabel:
+                text:             'Resonant frequencies for body systems'
+                font_style:       'Caption'
+                theme_text_color: 'Custom'
+                text_color:       C_PINK
+                halign:           'center'
+                size_hint_y:      None
+                height:           dp(20)
+                text_size:        self.size
+
+            # ── System filter chips ──────────────────────────────────────────
+            ScrollView:
+                do_scroll_x: True
+                do_scroll_y: False
+                size_hint_y: None
+                height:      dp(38)
+
+                MDBoxLayout:
+                    id:              organs_filter_row
+                    orientation:     'horizontal'
+                    size_hint_x:     None
+                    width:           self.minimum_width
+                    spacing:         dp(6)
+                    padding:         [0, dp(4)]
+                    adaptive_width:  True
+
+            WaveformWidget:
+                id:          organs_wave
+                size_hint_y: None
+                height:      dp(42)
+
+            SStatusLabel:
+                id:   organs_status
+                text: 'Tap a card to begin'
+
+            ScrollView:
+                do_scroll_x: False
+
+                MDBoxLayout:
+                    id:          organs_cards
+                    orientation: 'vertical'
+                    md_bg_color: C_BG
+                    size_hint_y: None
+                    height:      self.minimum_height
+                    spacing:     dp(10)
+                    padding:     [0, dp(4), 0, dp(8)]
+
     # ── MUSICAL NOTES ─────────────────────────────────────────────────────────
     MDBottomNavigationItem:
         name: 'notes'
         text: 'Notes'
-        icon: 'music'
+        icon: 'music-note'
 
         MDBoxLayout:
             orientation: 'vertical'
@@ -526,7 +555,6 @@ MDBottomNavigation:
                 height:           dp(20)
                 text_size:        self.size
 
-            # ── Tuning toggle row ──────────────────────────────────────────
             MDBoxLayout:
                 orientation:  'horizontal'
                 size_hint_y:  None
@@ -551,11 +579,10 @@ MDBottomNavigation:
 
                 TuningToggle:
                     id:    btn_432
-                    text:  'A = 432 Hz  ✦'
+                    text:  'A = 432 Hz'
                     group: 'tuning'
                     state: 'down'
 
-            # ── Note-type filter ───────────────────────────────────────────
             MDBoxLayout:
                 orientation:  'horizontal'
                 size_hint_y:  None
@@ -591,7 +618,6 @@ MDBottomNavigation:
 
                 Widget:
 
-            # ── Octave filter ──────────────────────────────────────────────
             MDBoxLayout:
                 orientation:  'horizontal'
                 size_hint_y:  None
@@ -646,7 +672,6 @@ MDBottomNavigation:
                 id:   notes_status
                 text: 'A4 = 432 Hz  ·  72 notes shown'
 
-            # ── Scrollable notes grid ──────────────────────────────────────
             ScrollView:
                 do_scroll_x: False
 

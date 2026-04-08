@@ -1,0 +1,91 @@
+#:kivy 2.0
+#:import dp kivy.metrics.dp
+#:import sp kivy.metrics.sp
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  ASSETS.KV — Icon and graphic asset definitions for SoundHealer
+#
+#  All icons use KivyMD's MDIcon widget which renders Material Design Icons
+#  from the bundled icon font — guaranteed to work on every Android device.
+#
+#  Usage in Python:
+#      from kivy.lang import Builder
+#      Builder.load_file('assets.kv')
+#  Then use AppIcon(icon='heart', icon_color=RED) anywhere.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ── Reusable icon widget ───────────────────────────────────────────────────────
+<AppIcon@MDIcon>:
+    # Size defaults — override per instance
+    size_hint:  None, None
+    size:       dp(28), dp(28)
+    halign:     'center'
+    valign:     'middle'
+    font_size:  sp(22)
+
+# ── Small icon (nav bars, badges) ─────────────────────────────────────────────
+<AppIconSm@MDIcon>:
+    size_hint:  None, None
+    size:       dp(20), dp(20)
+    halign:     'center'
+    valign:     'middle'
+    font_size:  sp(16)
+
+# ── Large decorative icon (screen headers, home tiles) ────────────────────────
+<AppIconLg@MDIcon>:
+    size_hint:  None, None
+    size:       dp(40), dp(40)
+    halign:     'center'
+    valign:     'middle'
+    font_size:  sp(32)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  ICON NAME MAP  (reference table — not widget rules)
+#
+#  Screen          MD Icon name              Notes
+#  ──────────────────────────────────────────────────────
+#  Home            home                      bottom nav
+#  Generator       tune                      bottom nav
+#  Solfeggio       star-four-points          bottom nav + header
+#  Chakras         circle-multiple-outline   bottom nav + header
+#  Notes           music-note                bottom nav + header
+#  Organs          heart-pulse               bottom nav + header
+#
+#  Solfeggio tones:
+#    174 Hz        shield-check              protection/foundation
+#    285 Hz        leaf                      restoration/nature
+#    396 Hz        lock-open-variant         liberation
+#    417 Hz        refresh                   change/undoing
+#    432 Hz        earth                     universal/natural
+#    528 Hz        dna                       DNA/love
+#    639 Hz        account-group             relationships
+#    741 Hz        eye-outline               intuition/awakening
+#    852 Hz        flower-tulip              spiritual order
+#    963 Hz        star-circle               divine/cosmic
+#
+#  Chakras:
+#    Root          square                    earth/stability
+#    Sacral        moon-waning-crescent      water/creativity
+#    Solar Plexus  white-balance-sunny       fire/power
+#    Heart         heart                     air/love
+#    Throat        microphone-outline        sound/truth
+#    Third Eye     eye-circle                light/intuition
+#    Crown         crown                     cosmic/unity
+#
+#  Organs:
+#    Brain         brain                     thought/mind
+#    Heart         heart-pulse               vitality
+#    Lungs         air-filter                breath
+#    Liver         water                     detox/flow
+#    Kidneys       water-circle              filtration
+#    Stomach       stomach                   digestion
+#    Intestines    transit-connection        processing
+#    Bladder       water-pump                storage
+#    Pancreas      candy-outline             regulation
+#    Colon         recycle                   elimination
+#    Adrenals      lightning-bolt            energy/stress
+#    Blood         water-drop                circulation
+#    Muscles       arm-flex-outline          strength
+#    Bones         bone                      structure
+# ═══════════════════════════════════════════════════════════════════════════════
